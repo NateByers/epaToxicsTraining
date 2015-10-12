@@ -1,0 +1,188 @@
+---
+title: 'R: Zero to Shiny App'
+author: "Kali Frost and Nathan Byers"
+date: "October 26, 2015"
+output:
+  ioslides_presentation:
+    logo: fluentlogo1.png
+runtime: shiny
+---
+
+
+## Training Outline
+
+- What is R
+- Data manipulation with `dplyr` and `tidyr`
+- Air toxics with R
+- Plotting with `openair`
+- Interactive web app with `shiny`
+
+<div class="notes">
+Presentation should last 50 to 60 minutes.
+
+</div>
+
+# What is R
+
+## The R Project  {.columns-2}
+
+- R is free software for statistical computing and graphics
+- [Download here](https://www.r-project.org/)
+
+![R](Rlogo.png)
+
+# Data manipulation with `dplyr` and `tidyr`
+
+## `raqdm`
+
+- Install using the `devtools` package.
+
+```{r, eval = FALSE}
+library(devtools)
+install_github("ebailey78/raqdm")
+library(raqdm)
+```
+
+- You will need a username and password from EPA to access the actual data. 
+
+```{r, eval = FALSE}
+setAQDMuser("me@mystate.gov", "my_password", save = TRUE)
+```
+
+## `raqdm`
+
+- Synchronous data download is not currently enabled on the EPA API.
+
+- Asynchronous data downloads can be made entired in the R 
+environment using `raqdm`.
+
+- First we can set defaults to pull data from Lake County monitors in Indiana
+during 2014.
+
+```{r, eval=FALSE}
+setAQDMdefaults(state = "18", county = "089" bdate = "20140101", edate = "20141231")
+```
+
+## `raqdm`
+
+- Now we make the reqests.
+
+```{r, eval = FALSE}
+benz_req <- getAQDMdata(param = "45201")     # Request benzene
+wind_sp_req <- getAQDMdata(param = "61101")  # Request wind speed
+wind_dir_req <- getAQDMdata(param = "61102") # Request wind direction
+```
+
+- Once the requests are processed on the server, we read in the data.
+
+```{r, eval=FALSE}
+benz <- getAQDMrequest(benz_req)
+wind_sp <- getAQDMrequest(wind_sp_req)
+wind_dir <- getAQDMrequest(wind_dir_req)
+```
+
+```{r, echo=FALSE}
+load("aqdm_data.Rdata")
+```
+
+## `dplyr`
+
+- Now that we have data in R, let's look at the `dplyr` package.
+- Written by [Hadley Wickham](http://had.co.nz/).
+- A very handy data manipulation package.
+- To begin with, we'll use a `dplyr` function called `as_tbl` to look at
+some of the data we've downloaded.
+
+## `dplyr`
+
+```{r, warning = FALSE, message=FALSE}
+library(dplyr)
+as.tbl(benz)
+```
+
+## `dplyr`
+
+- Combine all three data sets to one long data set using `rbind()`.
+
+```{r}
+lakeco_air <- rbind(benz, wind_dir)
+lakeco_air <- rbind(lakeco_air, wind_sp)
+```
+
+- Filter down to site number 22 using the `filter()` function.
+
+```{r}
+lakeco_air$date_hour <- paste(lakeco_air$Date.Local, lakeco_air$X24.Hour.Local)
+lakeco_air$date_hour <- as.POSIXct(lakeco_air$date_hour, tz = "US/Central", format = "%Y-%m-%d %H:%M")
+lakeco_air <- group_by(lakeco_air, date_hour)
+lakeco_air <- filter(lakeco_air, Site.Num == 22, POC == min(POC))
+```
+
+## `tidyr`
+
+
+```{r, warning=FALSE, message=FALSE}
+library(tidyr)
+lakeco_wide_air <- spread(lakeco_air[, c("date_hour", "AQS.Parameter.Desc", "Sample.Measurement")],
+                          key = AQS.Parameter.Desc, value = Sample.Measurement)
+```
+
+# Air toxics with R
+
+# Plotting with `openair`
+
+# Interactive web app with `shiny`
+
+## `ui.R`
+
+```{r, eval=FALSE}
+library(shiny)
+shinyUI(fluidPage(
+  titlePanel("Hello Shiny!"),
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("bins",
+                  "Number of bins:",
+                  min = 1,
+                  max = 50,
+                  value = 30)
+    ),
+    mainPanel(
+      plotOutput("distPlot")
+    )
+  )
+))
+```
+
+## `server.R`
+
+```{r, eval=FALSE}
+library(shiny)
+shinyServer(function(input, output) {
+  output$distPlot <- renderPlot({
+    x    <- faithful[, 2]  # Old Faithful Geyser data
+    bins <- seq(min(x), max(x), length.out = input$bins + 1)
+    hist(x, breaks = bins, col = 'darkgray', border = 'white')
+  })
+
+})
+```
+
+## Shiny app
+
+```{r, echo=FALSE}
+inputPanel(
+  sliderInput("bins",
+                  "Number of bins:",
+                  min = 1,
+                  max = 50,
+                  value = 30)
+)
+
+renderPlot({
+   x    <- faithful[, 2]  # Old Faithful Geyser data
+    bins <- seq(min(x), max(x), length.out = input$bins + 1)
+    hist(x, breaks = bins, col = 'darkgray', border = 'white')
+})
+```
+
