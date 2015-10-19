@@ -4,18 +4,22 @@ author: "Kali Frost and Nathan Byers"
 date: "October 26, 2015"
 output:
   ioslides_presentation:
-    logo: fluentlogo1.png
+    widescreen: true
 runtime: shiny
 ---
 
 
 ## Training Outline
 
-- What is R
-- Data manipulation with `dplyr` and `tidyr`
-- Air toxics with R
-- Plotting with `openair`
-- Interactive web app with `shiny`
+* What is R
+* Some useful R packages
+    + `raqdm`
+    + `dplyr`
+    + `tidyr`
+    + `ggplot2`
+* Air toxics with R
+* Plotting with `openair`
+* Interactive web app with `shiny`
 
 <div class="notes">
 Presentation should last 50 to 60 minutes.
@@ -26,105 +30,351 @@ Presentation should last 50 to 60 minutes.
 
 ## The R Project  {.columns-2}
 
-- R is free software for statistical computing and graphics
+- R is a free and open-source software for statistical computing and graphics
 - [Download here](https://www.r-project.org/)
+- It’s been very popular in academia for more than a decade
 
 ![R](Rlogo.png)
 
-# Data manipulation with `dplyr` and `tidyr`
+- A statisitcal software that can do complex analyses using built-in functions, similar to SAS
+- Also a programming language that is extendable (i.e. you can write your own functions/software)
 
-## `raqdm`
+## Popularity
 
-- Install using the `devtools` package.
+- Originally written by statisticians for statisticians
+- Now widely used in academia
+- Making headway into government and industry, especially the biotech and finance sectors. 
+- Here is a [link](http://r4stats.com/articles/popularity/) describing the increasing popularity of R.
+
+## IDE
+
+![RStudio](RStudio.png)
+
+- After you download R, you may want to use an integrated development environment (IDE) like
+RStudio 
+- An IDE makes R a little more user friendly
+- RStudio is free and can be downloaded at [rstudio.com](https://www.rstudio.com/)
+
+
+# Some useful R packages
+
+## Loading and installing packages
+
+- R comes with functions immediately available
+- Some functions come with R, but they are only available after loading a package using `library()`
 
 ```{r, eval = FALSE}
+library(lattice)
+```
+
+- Some packages do not come with an R download
+- Packages that are on [CRAN](https://cran.r-project.org/) can be downloaded and installed using `install.packages()`
+
+```{r, eval=FALSE}
+install.packages("devtools")
+```
+
+## Installing from GitHub ![GitHub](GitHub-Mark/GitHub-Mark/PNG/GitHub-Mark-64px.png)
+
+- You may want to use a package that isn't on CRAN 
+- Many R developers put their packages on GitHub 
+
+![](githubrepo.png)
+
+## Installing from GitHub ![GitHub](GitHub-Mark/GitHub-Mark/PNG/GitHub-Mark-64px.png)
+
+- To install a package from GitHub, load the devtools package
+
+```{r, eval=FALSE}
 library(devtools)
+```
+
+- Then use the `install_github()` function by specifying the user name and the repository
+
+```{r, eval=FALSE}
+install_github("ramnathv/rCharts")
+```
+
+# Retrieving Data with `raqdm`
+
+## `raqdm` - Overview
+
+- Provides convenient access to US EPA's AQS Data Mart in R
+- Makes use of the API discussed at http://www3.epa.gov/airdata/toc.html
+- Additional details and sourcecode on GitHub (https://github.com/ebailey78/raqdm)
+- Still under development - comments and suggestions welcome (eb11307@gmail.com)
+
+## `raqdm` - Features
+
+- Query AQS Data Mart from the R console or through a convienient GUI.
+- Save your most common parameter options so you don't have to enter them repeatedly
+- Access to all options available in EPA's web interface
+- Import requested data directly into an R data.frame for further analysis
+- Synchronous data pulls will be enabled when available from EPA
+
+## `raqdm` - Installation
+
+- `raqdm` isn't currently on CRAN
+- To install use the `install_github()` function:
+
+```{r, eval = FALSE}
 install_github("ebailey78/raqdm")
 library(raqdm)
 ```
 
-- You will need a username and password from EPA to access the actual data. 
+
+## `raqdm` - Setup
+
+- You will need a username and password from EPA to access the data
+- Request username and password from EPA by emailing aqsdatamart@epa.gov
+- Once you have user credentials you can save them in `raqdm` with the `setAQDMuser` function 
 
 ```{r, eval = FALSE}
 setAQDMuser("me@mystate.gov", "my_password", save = TRUE)
 ```
 
-## `raqdm`
-
-- Synchronous data download is not currently enabled on the EPA API.
-
-- Asynchronous data downloads can be made entired in the R 
-environment using `raqdm`.
-
-- First we can set defaults to pull data from Lake County monitors in Indiana
-during 2014.
-
-```{r, eval=FALSE}
-setAQDMdefaults(state = "18", county = "089" bdate = "20140101", edate = "20141231")
+- You can set other default parameters with the `setAQDMdefaults` function
+```{r, eval = FALSE}
+setAQDMdefaults(state = "18", bdate = "20140101", edate = "20141231")
 ```
 
-## `raqdm`
+- Setting `save = TRUE` will cause defaults to be saved across R sessions
 
-- Now we make the reqests.
+## `raqdm` - Requesting Data
+
+- Synchronous data download is not currently enabled on the EPA API.
+- We've set defaults for Indiana (18), and bdate(20140101) and edate(20141231) in the previous slide
+
+- Now we can request benzene data with
 
 ```{r, eval = FALSE}
 benz_req <- getAQDMdata(param = "45201")     # Request benzene
-wind_sp_req <- getAQDMdata(param = "61101")  # Request wind speed
-wind_dir_req <- getAQDMdata(param = "61102") # Request wind direction
 ```
+
+- Or We can request all available met data with
+```{r, eval = FALSE}
+met_req <- getAQDMdata(pc = "MET")
+```
+
+## `raqdm` - Retrieving Data
 
 - Once the requests are processed on the server, we read in the data.
 
 ```{r, eval=FALSE}
 benz <- getAQDMrequest(benz_req)
-wind_sp <- getAQDMrequest(wind_sp_req)
+met <- getAQDMrequest(met_req)
 wind_dir <- getAQDMrequest(wind_dir_req)
 ```
 
-```{r, echo=FALSE}
-load("aqdm_data.Rdata")
+# Data manipulation with `dplyr` 
+
+## `dplyr` - Overview
+
+- Written by [Hadley Wickham](http://had.co.nz/)
+- A very handy data manipulation package
+- Very fast (much of it is written in C++)
+- Can work with tables from databases
+- Main functions are `filter()`, `summarize()`, and `mutate()`
+- These main functions take a data frame as input and return 
+a data frame as output
+
+## `dplyr` - Data
+
+Below is a data frame that will be used to easily visualize
+`dplyr` operations
+
+```{r}
+tox <- read.table(header=T, text='
+  monitor  parameter       day   hour  value  limit              
+        A    benzene  20140601  08:00   4.72   16.3
+        A    benzene  20140601  09:00   5.84   16.3
+        A    benzene  20140602  08:00  21.12   16.3  
+        A    benzene  20140602  09:00   8.94   16.3
+        B    benzene  20140601  08:00   0.61   16.3
+        B    benzene  20140601  09:00   0.70   16.3
+        B    benzene  20140602  08:00   0.99   16.3
+        B    benzene  20140602  09:00   1.70   16.3
+        A    toluene  20140601  08:00  76.10   75.0
+        A    toluene  20140601  09:00   2.51   75.0
+                       ')
 ```
 
-## `dplyr`
 
-- Now that we have data in R, let's look at the `dplyr` package.
-- Written by [Hadley Wickham](http://had.co.nz/).
-- A very handy data manipulation package.
-- To begin with, we'll use a `dplyr` function called `as_tbl` to look at
-some of the data we've downloaded.
+## `dplyr` - Filtering
 
-## `dplyr`
+- The first argument of `filter()` is a data frame, `filter(tox, ...)`
+- The data frame can then be filters using logical expressions
+- Here we filter the `tox` data frame so that we just get values from monitor 1
 
-```{r, warning = FALSE, message=FALSE}
+```{r, message=FALSE, warning=FALSE}
 library(dplyr)
-as.tbl(benz)
+filter(tox, monitor == "A")
 ```
 
-## `dplyr`
+## `dplyr` - Filtering
 
-- Combine all three data sets to one long data set using `rbind()`.
+- You can enter more than one logical expression separated by a comma
 
 ```{r}
-lakeco_air <- rbind(benz, wind_dir)
-lakeco_air <- rbind(lakeco_air, wind_sp)
+filter(tox, monitor == "B", value > 1)
 ```
 
-- Filter down to site number 22 using the `filter()` function.
+- This is equivalent to using the `&` operator
 
 ```{r}
-lakeco_air$date_hour <- paste(lakeco_air$Date.Local, lakeco_air$X24.Hour.Local)
-lakeco_air$date_hour <- as.POSIXct(lakeco_air$date_hour, tz = "US/Central", format = "%Y-%m-%d %H:%M")
-lakeco_air <- group_by(lakeco_air, date_hour)
-lakeco_air <- filter(lakeco_air, Site.Num == 22, POC == min(POC))
+filter(tox, monitor == "B" & value > 1)
 ```
 
-## `tidyr`
+## `dplyr` - Filtering
+
+Again, the total number of columns is preserved in the output of
+`filter()`
+
+```{r}
+# output of dim() is c(number-of-rows, number-of-columns)
+dim(tox)
+dim(filter(tox, day == "20140602"))
+```
+
+## `dplyr` - Summarize
+
+- The first argument of `summarize()` is also a data frame
+- However, the input data frame requires grouping information
+- For example, if we wanted to summarize the `tox` data frame by 
+returning daily averages for each pollutant, we need to group the 
+data frame by `monitor`, `parameter`, and `day`
+
+```{r}
+head(tox)
+```
+
+## `dplyr` - Summarize
+
+- We add grouping information by using the `group_by()` function
+
+```{r}
+tox_daily <- group_by(tox, monitor, parameter, day)
+```
+
+- Now we feed this data frame to the summary function, `summarize(tox_daily, ...)`
+- To get daily averages, we also supply a function that will return the mean, and 
+we name it `daily_mean` (obviously not a true daily mean, with only a few hours...)
+
+```{r, eval=FALSE}
+summarize(tox_daily, daily_mean = mean(value))
+```
+
+## `dplyr` - Summarize
 
 
-```{r, warning=FALSE, message=FALSE}
+```{r, echo=FALSE}
+summarize(tox_daily, daily_mean = mean(value))
+```
+
+## `dplyr` - Summarize
+
+We could summarize the data down to an even smaller/simpler data frame
+that gives us the number of parameters measured for each monitor
+
+```{r}
+tox_monitors <- group_by(tox, monitor)
+summarize(tox_monitors, number_of_parameters = length(unique(parameter)))
+```
+
+## `dplyr` - Add Columns
+
+- You can add new columns to a data frame by using the `mutate()` function
+- The output will have the same number of rows
+- The first argument is the input data frame and the subsequent arguments
+must be functions that return a single value for each row (i.e. *not* a 
+summary function)
+
+```{r, eval=FALSE}
+mutate(tox, above_limit = value > limit)
+```
+
+## `dplyr` - Add Columns
+
+```{r}
+mutate(tox, above_limit = value > limit)
+```
+
+## `dplyr` - Add Columns
+
+Here we add more than one column at a time
+
+```{r}
+mutate(tox, above_limit = value > limit, limit_diff = value - limit)
+```
+
+# Reshaping with `tidyr`
+
+## `tidyr` - Overview
+
+- Also a Hadley Wickham package
+- Simple but powerful
+- Just does two things: reshapes wide to long and long to wide
+
+![](long_and_wide.png)
+
+## `tidyr` - Long to Wide
+
+- The `tox` data frame is in a long format
+- You can recognize a long format if there is only one column with 
+values
+
+```{r}
+head(tox)
+```
+
+## `tidyr` - Long to Wide
+
+- The `spread()` function takes a long data frame and spreads it
+out into a wide data frame
+- The first argument is the long data frame
+- The second argument is the column name of the key
+- The third argument is the column name of the values
+
+```{r, message=FALSE, warning=FALSE}
 library(tidyr)
-lakeco_wide_air <- spread(lakeco_air[, c("date_hour", "AQS.Parameter.Desc", "Sample.Measurement")],
-                          key = AQS.Parameter.Desc, value = Sample.Measurement)
+tox_wide <- spread(tox, key = parameter, value = value)
+```
+
+## `tidyr` - Long to Wide
+
+```{r}
+tox_wide
+```
+
+## `tidyr` - Long to Wide
+
+We could also spread the data frame by monitor
+
+```{r}
+spread(tox, key = monitor, value = value)
+```
+
+## `tidyr` - Wide to Long
+
+- The `gather()` function takes a wide data frame and gathers
+the columns into a long data frame
+- The first argument is the wide data frame
+- The second argument is the name of the key that will be created
+- The third argument is the name of the value column that will be created
+- The remaining arguments are the names of the columns to be gathered
+
+
+## `tidyr` - Wide to Long
+
+```{r}
+head(tox_wide)
+tox_long <- gather(tox_wide, key = pollutant, value = sample_measurement,
+                   benzene, toluene)
+```
+## `tidyr` - Wide to Long
+
+```{r}
+tox_long
 ```
 
 # Air toxics with R
