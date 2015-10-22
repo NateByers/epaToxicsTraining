@@ -1,24 +1,28 @@
 ---
-title: 'R: Zero to Shiny App'
+title: 'Air Toxics with R: Zero to Shiny'
 author: "Kali Frost and Nathan Byers"
 date: "October 26, 2015"
 output:
   ioslides_presentation:
     widescreen: true
+    fig_caption: true
 runtime: shiny
 ---
 
 
 ## Training Outline
 
-* What is R
-* Some useful R packages
-    + `raqdm`
+* What is R and RStudio
+* R basics
+* The Hadleyverse
     + `dplyr`
     + `tidyr`
     + `ggplot2`
-* Air toxics with R
-* Plotting with `openair`
+* Useful packages for air toxics
+    + `raqdm`
+    + `rucl`
+    + `openair`
+* Air toxics analysis demo
 * Interactive web app with `shiny`
 
 <div class="notes">
@@ -26,15 +30,15 @@ Presentation should last 50 to 60 minutes.
 
 </div>
 
-# What is R
+# What is R and RStudio
 
-## The R Project  {.columns-2}
+## The R Project   ![](Rlogo.png)
 
 - R is a free and open-source software for statistical computing and graphics
 - [Download here](https://www.r-project.org/)
 - It’s been very popular in academia for more than a decade
 
-![R](Rlogo.png)
+
 
 - A statisitcal software that can do complex analyses using built-in functions, similar to SAS
 - Also a programming language that is extendable (i.e. you can write your own functions/software)
@@ -46,17 +50,32 @@ Presentation should last 50 to 60 minutes.
 - Making headway into government and industry, especially the biotech and finance sectors. 
 - Here is a [link](http://r4stats.com/articles/popularity/) describing the increasing popularity of R.
 
-## IDE
-
-![RStudio](RStudio.png)
+## ![](RStudio.png)
 
 - After you download R, you may want to use an integrated development environment (IDE) like
 RStudio 
 - An IDE makes R a little more user friendly
 - RStudio is free and can be downloaded at [rstudio.com](https://www.rstudio.com/)
 
+## ![](RStudio.png)
 
-# Some useful R packages
+![](rstudio_screen.png)
+
+## Training Outline
+
+* <font color="#D9D9D9">What is R and RStudio</font>
+* R basics
+* <font color="#D9D9D9">The Hadleyverse</font>
+    + <font color="#D9D9D9">dplyr</font>
+    + <font color="#D9D9D9">tidyr</font>
+    + <font color="#D9D9D9">ggplot2</font>
+* <font color="#D9D9D9">Useful packages for air toxics</font>
+    + <font color="#D9D9D9">raqdm</font>
+    + <font color="#D9D9D9">rucl</font>
+    + <font color="#D9D9D9">openair</font>
+* <font color="#D9D9D9">Air toxics analysis demo</font>
+* <font color="#D9D9D9">Interactive web app with shiny</font>
+
 
 ## Loading and installing packages
 
@@ -95,82 +114,34 @@ library(devtools)
 install_github("ramnathv/rCharts")
 ```
 
-# Retrieving Data with `raqdm`
+## Training Outline
 
-## `raqdm` - Overview
-
-- Provides convenient access to US EPA's AQS Data Mart in R
-- Makes use of the API discussed at http://www3.epa.gov/airdata/toc.html
-- Additional details and sourcecode on GitHub (https://github.com/ebailey78/raqdm)
-- Still under development - comments and suggestions welcome (eb11307@gmail.com)
-
-## `raqdm` - Features
-
-- Query AQS Data Mart from the R console or through a convienient GUI.
-- Save your most common parameter options so you don't have to enter them repeatedly
-- Access to all options available in EPA's web interface
-- Import requested data directly into an R data.frame for further analysis
-- Synchronous data pulls will be enabled when available from EPA
-
-## `raqdm` - Installation
-
-- `raqdm` isn't currently on CRAN
-- To install use the `install_github()` function:
-
-```{r, eval = FALSE}
-install_github("ebailey78/raqdm")
-library(raqdm)
-```
+* <font color="#D9D9D9">What is R and RStudio</font>
+* <font color="#D9D9D9">R basics</font>
+* The Hadleyverse
+    + `dplyr`
+    + `tidyr`
+    + `ggplot2`
+* <font color="#D9D9D9">Useful packages for air toxics</font>
+    + <font color="#D9D9D9">raqdm</font>
+    + <font color="#D9D9D9">rucl</font>
+    + <font color="#D9D9D9">openair</font>
+* <font color="#D9D9D9">Air toxics analysis demo</font>
+* <font color="#D9D9D9">Interactive web app with shiny</font>
 
 
-## `raqdm` - Setup
+## The Hadleyverse {.columns-2}
 
-- You will need a username and password from EPA to access the data
-- Request username and password from EPA by emailing aqsdatamart@epa.gov
-- Once you have user credentials you can save them in `raqdm` with the `setAQDMuser` function 
+- The Hadleyverse is a collection of packages written by
+[Hadley Wickham](http://had.co.nz/)
+- These packages make R much easier to use
+- We will introduce three useful packages for data manipulation (`dplyr`),
+reshaping data (`tidyr`), and data visualization (`ggplot2`)
 
-```{r, eval = FALSE}
-setAQDMuser("me@mystate.gov", "my_password", save = TRUE)
-```
-
-- You can set other default parameters with the `setAQDMdefaults` function
-```{r, eval = FALSE}
-setAQDMdefaults(state = "18", bdate = "20140101", edate = "20141231")
-```
-
-- Setting `save = TRUE` will cause defaults to be saved across R sessions
-
-## `raqdm` - Requesting Data
-
-- Synchronous data download is not currently enabled on the EPA API.
-- We've set defaults for Indiana (18), and bdate(20140101) and edate(20141231) in the previous slide
-
-- Now we can request benzene data with
-
-```{r, eval = FALSE}
-benz_req <- getAQDMdata(param = "45201")     # Request benzene
-```
-
-- Or We can request all available met data with
-```{r, eval = FALSE}
-met_req <- getAQDMdata(pc = "MET")
-```
-
-## `raqdm` - Retrieving Data
-
-- Once the requests are processed on the server, we read in the data.
-
-```{r, eval=FALSE}
-benz <- getAQDMrequest(benz_req)
-met <- getAQDMrequest(met_req)
-wind_dir <- getAQDMrequest(wind_dir_req)
-```
-
-# Data manipulation with `dplyr` 
+![http://adolfoalvarez.cl/the-hitchhikers-guide-to-the-hadleyverse/](hadleyverse.png)
 
 ## `dplyr` - Overview
 
-- Written by [Hadley Wickham](http://had.co.nz/)
 - A very handy data manipulation package
 - Very fast (much of it is written in C++)
 - Can work with tables from databases
@@ -307,13 +278,13 @@ Here we add more than one column at a time
 mutate(tox, above_limit = value > limit, limit_diff = value - limit)
 ```
 
-# Reshaping with `tidyr`
 
-## `tidyr` - Overview
+## `tidyr` - Overview {.columns-2}
 
-- Also a Hadley Wickham package
-- Simple but powerful
-- Just does two things: reshapes wide to long and long to wide
+- `tidyr` is a very simple but very useful package
+- Just does two things
+    + reshapes wide to long 
+    + reshapes long to wide
 
 ![](long_and_wide.png)
 
@@ -377,11 +348,266 @@ tox_long <- gather(tox_wide, key = pollutant, value = sample_measurement,
 tox_long
 ```
 
-# Air toxics with R
 
-# Plotting with `openair`
+## `ggplot2` - Overview
 
-# Interactive web app with `shiny`
+- Base R does have graphing functions for common plots, such as
+scatter plots, line graphs, box plots, and histograms
+- `ggplot2` makes it easier to create multi-panel/complex plots
+
+![](multipanelggplot.png)
+
+## `ggplot2` - Example Data
+
+For demonstration we'll use the following randomly generated data 
+
+```{r}
+rtox <- data.frame(
+  date = rep(seq(as.Date("2014-01-01"), by = 6, length = 60), 2),
+  monitor = rep(c("A", "B"), each = 60),
+  benzene = rgamma(120, shape = 1.5, scale = 3),
+  formaldehyde = rgamma(120, shape = 1, scale = 2),
+  acrolein = rgamma(120, shape = 1.5, scale = 2.5), 
+  p_dichlorobenzene = rgamma(120, shape = 1, scale = 3)
+)
+head(rtox, 3)
+
+```
+
+## `ggplot2` - Example Data
+
+
+```{r}
+rtox_long <- gather(rtox, parameter, value = sample, benzene:p_dichlorobenzene)
+head(rtox)
+
+```
+
+## `ggplot2` - Time Series
+
+- Here is code to make a time series plot of benzene at site A
+- The `aes()` parameter is where we specify the x and y axes
+- `geom_line()` makes it a line graph
+
+```{r, eval=FALSE}
+library(ggplot2)
+
+benzene_A <- filter(rtox_long, parameter == "benzene", monitor == "A")
+
+ggplot(benzene_A, aes(x=date, y=sample)) +
+    geom_line() +
+    ggtitle("Benzene Time Series 2014")
+```
+
+
+## `ggplot2` - Time Series
+
+```{r, echo=FALSE, warning=FALSE}
+library(ggplot2)
+
+benzene_A <- filter(rtox_long, parameter == "benzene", monitor == "A")
+
+ggplot(benzene_A, aes(x=date, y=sample)) +
+    geom_line() +
+    ggtitle("Benzene Time Series 2014")
+```
+
+## `ggplot2` - Time Series
+
+Here we make a time series plot of all pollutants at monitor B
+
+```{r, eval = FALSE}
+site_B <- filter(rtox_long, monitor == "B")
+
+ggplot(site_B, aes(x=date, y=sample, color=parameter)) +
+    geom_line() +
+    ggtitle("Toxics Time Series Monitor B 2014")
+```
+
+## `ggplot2` - Time Series
+
+```{r, echo=FALSE, warning = FALSE}
+site_B <- filter(rtox_long, monitor == "B")
+
+ggplot(site_B, aes(x=date, y=sample, color=parameter)) +
+    geom_line() +
+    ggtitle("Toxics Time Series Monitor B 2014")
+```
+
+## `ggplot2` - Time Series
+
+Here we plot all toxics data for both monitors
+
+
+```{r, eval=FALSE}
+ggplot(rtox_long, aes(x=date, y=sample, color=parameter)) +
+    geom_line() + facet_grid( ~ monitor) +
+    ggtitle("Toxics Time Series 2014")
+```
+
+## `ggplot2` - Time Series
+
+
+```{r, warning = FALSE, echo=FALSE, fig.width=11, fig.height=4.5}
+ggplot(rtox_long, aes(x=date, y=sample, color=parameter)) +
+    geom_line() + facet_grid( ~ monitor) +
+    ggtitle("Toxics Time Series 2014")
+```
+
+## `ggplot2` - Boxplots
+
+```{r, warning=FALSE}
+ggplot(rtox, aes(x=monitor, y=benzene)) + geom_boxplot()
+```
+
+## `ggplot2` - Boxplots
+
+```{r}
+ggplot(site_B, aes(x=parameter, y=sample)) + geom_boxplot()
+```
+
+## `ggplot2` - Boxplots
+
+```{r}
+ggplot(rtox_long, aes(x=parameter, y=sample)) + geom_boxplot() + facet_grid( ~ monitor)
+```
+
+## `ggplot2` - Histograms
+
+```{r, warning=FALSE, message=FALSE}
+ggplot(benzene_A, aes(x=sample)) + geom_histogram()
+```
+
+## `ggplot2` - Histograms
+
+```{r, message=FALSE}
+ggplot(site_B, aes(x=sample, fill=parameter)) + geom_histogram()
+```
+
+## `ggplot2` - Histograms
+
+```{r, message = FALSE}
+ggplot(rtox_long, aes(x=sample, fill=parameter)) + geom_histogram() + facet_grid(~ monitor)
+```
+
+
+## Training Outline
+
+* <font color="#D9D9D9">What is R and RStudio</font>
+* <font color="#D9D9D9">R basics</font>
+* <font color="#D9D9D9">The Hadleyverse</font>
+    + <font color="#D9D9D9">dplyr</font>
+    + <font color="#D9D9D9">tidyr</font>
+    + <font color="#D9D9D9">ggplot2</font>
+* Useful packages for air toxics
+    + `raqdm`
+    + `rucl`
+    + `openair`
+* <font color="#D9D9D9">Air toxics analysis demo</font>
+* <font color="#D9D9D9">Interactive web app with shiny</font>
+
+
+# Retrieving Data with `raqdm`
+
+## `raqdm` - Overview
+
+- Provides convenient access to US EPA's AQS Data Mart in R
+- Makes use of the API discussed at http://www3.epa.gov/airdata/toc.html
+- Additional details and sourcecode on GitHub (https://github.com/ebailey78/raqdm)
+- Still under development - comments and suggestions welcome (eb11307@gmail.com)
+
+## `raqdm` - Features
+
+- Query AQS Data Mart from the R console or through a convienient GUI.
+- Save your most common parameter options so you don't have to enter them repeatedly
+- Access to all options available in EPA's web interface
+- Import requested data directly into an R data.frame for further analysis
+- Synchronous data pulls will be enabled when available from EPA
+
+## `raqdm` - Installation
+
+- `raqdm` isn't currently on CRAN
+- To install use the `install_github()` function:
+
+```{r, eval = FALSE}
+install_github("ebailey78/raqdm")
+library(raqdm)
+```
+
+
+## `raqdm` - Setup
+
+- You will need a username and password from EPA to access the data
+- Request username and password from EPA by emailing aqsdatamart@epa.gov
+- Once you have user credentials you can save them in `raqdm` with the `setAQDMuser` function 
+
+```{r, eval = FALSE}
+setAQDMuser("me@mystate.gov", "my_password", save = TRUE)
+```
+
+- You can set other default parameters with the `setAQDMdefaults` function
+```{r, eval = FALSE}
+setAQDMdefaults(state = "18", bdate = "20140101", edate = "20141231")
+```
+
+- Setting `save = TRUE` will cause defaults to be saved across R sessions
+
+## `raqdm` - Requesting Data
+
+- Synchronous data download is not currently enabled on the EPA API.
+- We've set defaults for Indiana (18), and bdate(20140101) and edate(20141231) in the previous slide
+
+- Now we can request benzene data with
+
+```{r, eval = FALSE}
+benz_req <- getAQDMdata(param = "45201")     # Request benzene
+```
+
+- Or We can request all available met data with
+```{r, eval = FALSE}
+met_req <- getAQDMdata(pc = "MET")
+```
+
+## `raqdm` - Retrieving Data
+
+- Once the requests are processed on the server, we read in the data.
+
+```{r, eval=FALSE}
+benz <- getAQDMrequest(benz_req)
+met <- getAQDMrequest(met_req)
+wind_dir <- getAQDMrequest(wind_dir_req)
+```
+
+
+## Training Outline
+
+* <font color="#D9D9D9">What is R and RStudio</font>
+* <font color="#D9D9D9">R basics</font>
+* <font color="#D9D9D9">The Hadleyverse</font>
+    + <font color="#D9D9D9">dplyr</font>
+    + <font color="#D9D9D9">tidyr</font>
+    + <font color="#D9D9D9">ggplot2</font>
+* <font color="#D9D9D9">Useful packages for air toxics</font>
+    + <font color="#D9D9D9">raqdm</font>
+    + <font color="#D9D9D9">rucl</font>
+    + <font color="#D9D9D9">openair</font>
+* Air toxics analysis demo
+* <font color="#D9D9D9">Interactive web app with shiny</font>
+
+## Training Outline
+
+* <font color="#D9D9D9">What is R and RStudio</font>
+* <font color="#D9D9D9">R basics</font>
+* <font color="#D9D9D9">The Hadleyverse</font>
+    + <font color="#D9D9D9">dplyr</font>
+    + <font color="#D9D9D9">tidyr</font>
+    + <font color="#D9D9D9">ggplot2</font>
+* <font color="#D9D9D9">Useful packages for air toxics</font>
+    + <font color="#D9D9D9">raqdm</font>
+    + <font color="#D9D9D9">rucl</font>
+    + <font color="#D9D9D9">openair</font>
+* <font color="#D9D9D9">Air toxics analysis demo</font>
+* Interactive web app with `shiny`
 
 ## `ui.R`
 
