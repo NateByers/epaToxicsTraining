@@ -1,5 +1,5 @@
 ---
-title: 'Air Toxics with R: Zero to Shiny'
+title: 'Air Toxics Data and R: Zero to Shiny'
 author: "Kali Frost and Nathan Byers"
 date: "October 26, 2015"
 output:
