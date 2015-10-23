@@ -1,5 +1,5 @@
 ---
-title: 'Air Toxics Data and R: Zero to Shiny'
+title: 'Air Toxics Data in R: Zero to Shiny'
 author: "Kali Frost and Nathan Byers"
 date: "October 26, 2015"
 output:
@@ -11,10 +11,20 @@ runtime: shiny
 
 ## Who we are
 
-- Nathan Byers, Kali Frost, and Eric Bailey (_in absentia_)
+- Nathan Byers
+    + Database Analyst at Indiana University (IU) School of Medicine
+- Kali Frost
+    + Research Associate at IU School of Public Health
+- Eric Bailey (_in absentia_)
+    + Web Application Developer at IU School of Medicine
 - Former employees at the Indiana Department of Environmental Management
 - Experienced data analysts and R programmers
+
+
+## Who we are
+
 - R enthusiests
+- Follow along at https://ebailey78.shinyapps.io/epaToxicsPresentation
 
 ![](images/renthusiast.jpg)
 
@@ -22,7 +32,7 @@ runtime: shiny
 
 <div class="columns-2">
 - R presentation using [ioslides](http://rmarkdown.rstudio.com/ioslides_presentation_format.html)
-- Follow along at https://ebailey78.shinyapps.io/epaToxicsPresentation
+
 - Source code is on [GitHub](https://github.com/NateByers/epaToxicsTraining) and is entirely reproducible
 
 ![https://xkcd.com/242/](images/xkcd.png)
