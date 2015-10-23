@@ -79,6 +79,6 @@ V(g)$frame.color <- unlist(c("#E2D200", "#BFBFBF", "#46ACC8", "#E58601", rep("#B
 set.seed(123)
 layout <- layout.kamada.kawai(g)
 
-png(filename="hadleyverse.png", width=1.8*1920, height=1.8*1080) #call the png writer
+png(filename="images/hadleyverse.png", width=1.8*1920, height=1.8*1080) #call the png writer
 plot(g, margin=-0.1, layout=layout)
 dev.off()

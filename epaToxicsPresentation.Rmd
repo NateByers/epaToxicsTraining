@@ -9,6 +9,25 @@ output:
 runtime: shiny
 ---
 
+## Who we are
+
+- Nathan Byers, Kali Frost, and Eric Bailey (_in absentia_)
+- Former employees at the Indiana Department of Environmental Management
+- Experienced data analysts and R programmers
+- R enthusiests
+
+![](images/renthusiast.jpg)
+
+## What this is 
+
+<div class="columns-2">
+- R presentation using [ioslides](http://rmarkdown.rstudio.com/ioslides_presentation_format.html)
+- Follow along at https://ebailey78.shinyapps.io/epaToxicsPresentation
+- Source code is on [GitHub](https://github.com/NateByers/epaToxicsTraining) and is entirely reproducible
+
+![https://xkcd.com/242/](images/xkcd.png)
+</div>
+
 
 ## Training Outline
 
@@ -32,34 +51,31 @@ Presentation should last 50 to 60 minutes.
 
 # What is R and RStudio
 
-## The R Project   ![](Rlogo.png)
+## The R Project   ![](images/Rlogo.png)
 
-- R is a free and open-source software for statistical computing and graphics
+- R is free and open-source software for statistical computing and graphics
 - [Download here](https://www.r-project.org/)
 - It’s been very popular in academia for more than a decade
-
-
-
-- A statisitcal software that can do complex analyses using built-in functions, similar to SAS
+- Statisitcal software that can do complex analyses using built-in functions, similar to SAS
 - Also a programming language that is extendable (i.e. you can write your own functions/software)
 
 ## Popularity
 
 - Originally written by statisticians for statisticians
-- Now widely used in academia
+- Now widely used in academia (not just stats departments)
 - Making headway into government and industry, especially the biotech and finance sectors. 
 - Here is a [link](http://r4stats.com/articles/popularity/) describing the increasing popularity of R.
 
-## ![](RStudio.png)
+## ![](images/RStudio.png)
 
 - After you download R, you may want to use an integrated development environment (IDE) like
 RStudio 
 - An IDE makes R a little more user friendly
 - RStudio is free and can be downloaded at [rstudio.com](https://www.rstudio.com/)
 
-## ![](RStudio.png)
+## ![](images/RStudio.png)
 
-![](rstudio_screen.png)
+![](images/rstudio_screen.png)
 
 ## Training Outline
 
@@ -76,8 +92,116 @@ RStudio
 * <font color="#D9D9D9">Air toxics analysis demo</font>
 * <font color="#D9D9D9">Interactive web app with shiny</font>
 
+## R Basics - Command line
 
-## Loading and installing packages
+- R is a language and an environment
+- By "language" we mean there is a syntax, or a certain way to type letters, 
+words, numbers, and other symbols
+- You type in the "command line" and hit enter to do something, in contrast to
+pointing and clicking to do something
+
+![](images/command_line.png)
+
+## R Basics - Command line 
+
+- In this presentation, command line code will be shown in blocks with gray 
+background shading
+
+- The output will be shown in a separate block below the command line input
+with a lighter shadow and `##` at the beginning of each line
+
+```{r}
+"command line"
+1 + 1
+```
+
+## R Basics - Math
+
+As we demonstrated in the previous slide, you can use R as a simple calculator
+
+```{r}
+3 - 1
+2 * 2
+10 / 5
+log(10)
+```
+
+## R Basics - Variables
+
+We can store numbers and text in variables
+
+```{r}
+x <- 1
+x
+x <- 10
+x
+y <- 2
+x * y
+```
+
+## R Basics - Variables
+
+```{r}
+pollutant <- "benzene"
+pollutant
+pollutant <- "toluene"
+pollutant
+```
+
+## R Basics - Vectors
+
+- A series of numbers or text values and be stored together in a vector
+- The container for a vector is `c( )`
+
+```{r}
+c(1, 2, 3)
+x <- c(5, 6, 7)
+x
+z <- c("mercury", "cadmium")
+z
+```
+
+## R Basics - Functions
+
+- Variables and vectors contain data
+- Functions do stuff to data
+- You recongnize a function by parentheses `( )`
+
+```{r}
+x <- c(1, 2, 3, 3, 4, 5, 5, 6, 7, 7, 7)
+mean(x)
+median(x)
+```
+
+## R Basics - Functions
+
+- To find out how to use a function, type `?` then the function name
+- Below is an image of what you see in RStudio if you type `?mean` and hit return
+
+![](images/mean_documentation.png)
+
+
+## R Basics - Data Frames
+
+- A data frame is a collection of vectors with the same length
+- Basically a spreadsheet
+
+```{r}
+pollutant <- c("benzene", "acrolein")
+value <- c(.7, .8)
+unit <- c("ug/m^3", "ug/m^3")
+df <- cbind(pollutant, value, unit)
+df
+```
+
+## R Basics - Data Objects and Functions
+
+- Those are the basic type of objects you'll need to be familiar with to understand this training/demonstration
+- Vectors and data frames store numbers and text (a variable with a single value
+is actually just a vector of length 1)
+- Functions do things to vectors and data frames then return an output
+
+## R Basics - Loading/installing packages
 
 - R comes with functions immediately available
 - Some functions come with R, but they are only available after loading a package using `library()`
@@ -93,14 +217,14 @@ library(lattice)
 install.packages("devtools")
 ```
 
-## Installing from GitHub ![GitHub](GitHub-Mark/GitHub-Mark/PNG/GitHub-Mark-64px.png)
+## R Basics - Installing from GitHub ![GitHub](images/GitHub-Mark/GitHub-Mark/PNG/GitHub-Mark-64px.png)
 
 - You may want to use a package that isn't on CRAN 
 - Many R developers put their packages on GitHub 
 
-![](githubrepo.png)
+![](images/githubrepo.png)
 
-## Installing from GitHub ![GitHub](GitHub-Mark/GitHub-Mark/PNG/GitHub-Mark-64px.png)
+## R Basics - Installing from GitHub ![GitHub](images/GitHub-Mark/GitHub-Mark/PNG/GitHub-Mark-64px.png)
 
 - To install a package from GitHub, load the devtools package
 
@@ -138,7 +262,9 @@ install_github("ramnathv/rCharts")
 - We will introduce three useful packages for data manipulation (`dplyr`),
 reshaping data (`tidyr`), and data visualization (`ggplot2`)
 
-![http://adolfoalvarez.cl/the-hitchhikers-guide-to-the-hadleyverse/](hadleyverse.png)
+![http://adolfoalvarez.cl/the-hitchhikers-guide-to-the-hadleyverse/](images/hadleyverse.png)
+
+# Data manipulation with `dplyr`
 
 ## `dplyr` - Overview
 
@@ -175,7 +301,7 @@ tox <- read.table(header=T, text='
 
 - The first argument of `filter()` is a data frame, `filter(tox, ...)`
 - The data frame can then be filters using logical expressions
-- Here we filter the `tox` data frame so that we just get values from monitor 1
+- Here we filter the `tox` data frame so that we just get values from monitor A
 
 ```{r, message=FALSE, warning=FALSE}
 library(dplyr)
@@ -278,6 +404,7 @@ Here we add more than one column at a time
 mutate(tox, above_limit = value > limit, limit_diff = value - limit)
 ```
 
+# Reshape data with `tidyr`
 
 ## `tidyr` - Overview {.columns-2}
 
@@ -286,7 +413,7 @@ mutate(tox, above_limit = value > limit, limit_diff = value - limit)
     + reshapes wide to long 
     + reshapes long to wide
 
-![](long_and_wide.png)
+![](images/long_and_wide.png)
 
 ## `tidyr` - Long to Wide
 
@@ -348,6 +475,7 @@ tox_long <- gather(tox_wide, key = pollutant, value = sample_measurement,
 tox_long
 ```
 
+# Visualize data with `ggplot2`
 
 ## `ggplot2` - Overview
 
@@ -355,7 +483,7 @@ tox_long
 scatter plots, line graphs, box plots, and histograms
 - `ggplot2` makes it easier to create multi-panel/complex plots
 
-![](multipanelggplot.png)
+![](images/multipanelggplot.png)
 
 ## `ggplot2` - Example Data
 
