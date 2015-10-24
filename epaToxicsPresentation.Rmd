@@ -23,7 +23,7 @@ runtime: shiny
 
 ## Who we are
 
-- R enthusiests
+- R enthusiasts
 - Follow along at https://ebailey78.shinyapps.io/epaToxicsPresentation
 
 ![](images/renthusiast.jpg)
@@ -33,7 +33,9 @@ runtime: shiny
 <div class="columns-2">
 - R presentation using [ioslides](http://rmarkdown.rstudio.com/ioslides_presentation_format.html)
 
-- Source code is on [GitHub](https://github.com/NateByers/epaToxicsTraining) and is entirely reproducible
+- Source code is on [GitHub](https://github.com/NateByers/epaToxicsTraining) 
+
+- This is entirely reproducible
 
 ![https://xkcd.com/242/](images/xkcd.png)
 </div>
@@ -61,7 +63,7 @@ Presentation should last 50 to 60 minutes.
 
 # What is R and RStudio
 
-## The R Project   ![](images/Rlogo.png)
+## ![](images/Rlogo.png) The R Project   
 
 - R is free and open-source software for statistical computing and graphics
 - [Download here](https://www.r-project.org/)
@@ -69,7 +71,7 @@ Presentation should last 50 to 60 minutes.
 - Statisitcal software that can do complex analyses using built-in functions, similar to SAS
 - Also a programming language that is extendable (i.e. you can write your own functions/software)
 
-## Popularity
+## ![](images/Rlogo.png) Popularity
 
 - Originally written by statisticians for statisticians
 - Now widely used in academia (not just stats departments)
@@ -105,8 +107,7 @@ RStudio
 ## R Basics - Command line
 
 - R is a language and an environment
-- By "language" we mean there is a syntax, or a certain way to type letters, 
-words, numbers, and other symbols
+
 - You type in the "command line" and hit enter to do something, in contrast to
 pointing and clicking to do something
 
@@ -211,7 +212,7 @@ df
 is actually just a vector of length 1)
 - Functions do things to vectors and data frames then return an output
 
-## R Basics - Loading/installing packages
+## R Basics - Installing/loading packages
 
 - R comes with functions immediately available
 - Some functions come with R, but they are only available after loading a package using `library()`
@@ -236,7 +237,7 @@ install.packages("devtools")
 
 ## R Basics - Installing from GitHub ![GitHub](images/GitHub-Mark/GitHub-Mark/PNG/GitHub-Mark-64px.png)
 
-- To install a package from GitHub, load the devtools package
+- To install a package from GitHub, load the `devtools` package
 
 ```{r, eval=FALSE}
 library(devtools)
@@ -247,6 +248,18 @@ library(devtools)
 ```{r, eval=FALSE}
 install_github("ramnathv/rCharts")
 ```
+
+## R Basics - Resources
+
+- Many great resources for learning R
+- Beginners material
+    + [Quick R](http://www.statmethods.net/)
+    + [UCLA](http://www.ats.ucla.edu/stat/r/)
+    + [DataCamp](https://www.datacamp.com/courses/free-introduction-to-r)
+    + [Code School](http://tryr.codeschool.com/)
+- Intermidiate/advanced material
+    + [Cookbook for R](http://www.cookbook-r.com/)
+    + 
 
 ## Training Outline
 
@@ -287,22 +300,22 @@ a data frame as output
 
 ## `dplyr` - Data
 
-Below is a data frame that will be used to easily visualize
+Below is a _made up_ data frame that will be used to easily visualize
 `dplyr` operations
 
 ```{r}
 tox <- read.table(header=T, text='
-  monitor  parameter       day   hour  value  limit              
-        A    benzene  20140601  08:00   4.72   16.3
-        A    benzene  20140601  09:00   5.84   16.3
-        A    benzene  20140602  08:00  21.12   16.3  
-        A    benzene  20140602  09:00   8.94   16.3
-        B    benzene  20140601  08:00   0.61   16.3
-        B    benzene  20140601  09:00   0.70   16.3
-        B    benzene  20140602  08:00   0.99   16.3
-        B    benzene  20140602  09:00   1.70   16.3
-        A    toluene  20140601  08:00  76.10   75.0
-        A    toluene  20140601  09:00   2.51   75.0
+  monitor  parameter       day   hour  value  screen              
+        A    benzene  20140601  08:00   0.72     1.3
+        A    benzene  20140601  09:00   0.84     1.3
+        A    benzene  20140602  08:00   1.35     1.3  
+        A    benzene  20140602  09:00   0.94     1.3
+        B    benzene  20140601  08:00   0.61     1.3
+        B    benzene  20140601  09:00   0.70     1.3
+        B    benzene  20140602  08:00   0.99     1.3
+        B    benzene  20140602  09:00   1.70     1.3
+        A    toluene  20140601  08:00   6.10     300
+        A    toluene  20140601  09:00   2.51     300
                        ')
 ```
 
@@ -323,25 +336,15 @@ filter(tox, monitor == "A")
 - You can enter more than one logical expression separated by a comma
 
 ```{r}
-filter(tox, monitor == "B", value > 1)
+filter(tox, monitor == "B", value > screen)
 ```
 
 - This is equivalent to using the `&` operator
 
 ```{r}
-filter(tox, monitor == "B" & value > 1)
+filter(tox, monitor == "B" & value > screen)
 ```
 
-## `dplyr` - Filtering
-
-Again, the total number of columns is preserved in the output of
-`filter()`
-
-```{r}
-# output of dim() is c(number-of-rows, number-of-columns)
-dim(tox)
-dim(filter(tox, day == "20140602"))
-```
 
 ## `dplyr` - Summarize
 
@@ -378,15 +381,6 @@ summarize(tox_daily, daily_mean = mean(value))
 summarize(tox_daily, daily_mean = mean(value))
 ```
 
-## `dplyr` - Summarize
-
-We could summarize the data down to an even smaller/simpler data frame
-that gives us the number of parameters measured for each monitor
-
-```{r}
-tox_monitors <- group_by(tox, monitor)
-summarize(tox_monitors, number_of_parameters = length(unique(parameter)))
-```
 
 ## `dplyr` - Add Columns
 
@@ -397,13 +391,13 @@ must be functions that return a single value for each row (i.e. *not* a
 summary function)
 
 ```{r, eval=FALSE}
-mutate(tox, above_limit = value > limit)
+mutate(tox, above_screen = value > screen)
 ```
 
 ## `dplyr` - Add Columns
 
 ```{r}
-mutate(tox, above_limit = value > limit)
+mutate(tox, above_screen = value > screen)
 ```
 
 ## `dplyr` - Add Columns
@@ -411,19 +405,20 @@ mutate(tox, above_limit = value > limit)
 Here we add more than one column at a time
 
 ```{r}
-mutate(tox, above_limit = value > limit, limit_diff = value - limit)
+mutate(tox, above_screen = value > screen, 
+       screen_diff = value - screen)
 ```
 
 # Reshape data with `tidyr`
 
-## `tidyr` - Overview {.columns-2}
+## `tidyr` - Overview 
+
+<img src="images/long_and_wide.png" style="float: right;" />
 
 - `tidyr` is a very simple but very useful package
 - Just does two things
     + reshapes wide to long 
     + reshapes long to wide
-
-![](images/long_and_wide.png)
 
 ## `tidyr` - Long to Wide
 
@@ -517,7 +512,7 @@ head(rtox, 3)
 
 ```{r}
 rtox_long <- gather(rtox, parameter, value = sample, benzene:p_dichlorobenzene)
-head(rtox)
+head(rtox_long)
 
 ```
 
@@ -533,7 +528,7 @@ library(ggplot2)
 benzene_A <- filter(rtox_long, parameter == "benzene", monitor == "A")
 
 ggplot(benzene_A, aes(x=date, y=sample)) +
-    geom_line() +
+    geom_line() + 
     ggtitle("Benzene Time Series 2014")
 ```
 
@@ -546,7 +541,7 @@ library(ggplot2)
 benzene_A <- filter(rtox_long, parameter == "benzene", monitor == "A")
 
 ggplot(benzene_A, aes(x=date, y=sample)) +
-    geom_line() +
+    geom_line() + 
     ggtitle("Benzene Time Series 2014")
 ```
 
@@ -558,7 +553,7 @@ Here we make a time series plot of all pollutants at monitor B
 site_B <- filter(rtox_long, monitor == "B")
 
 ggplot(site_B, aes(x=date, y=sample, color=parameter)) +
-    geom_line() +
+    geom_line() + 
     ggtitle("Toxics Time Series Monitor B 2014")
 ```
 
@@ -568,7 +563,7 @@ ggplot(site_B, aes(x=date, y=sample, color=parameter)) +
 site_B <- filter(rtox_long, monitor == "B")
 
 ggplot(site_B, aes(x=date, y=sample, color=parameter)) +
-    geom_line() +
+    geom_line() + 
     ggtitle("Toxics Time Series Monitor B 2014")
 ```
 
@@ -645,14 +640,14 @@ ggplot(rtox_long, aes(x=sample, fill=parameter)) + geom_histogram() + facet_grid
 * <font color="#D9D9D9">Interactive web app with shiny</font>
 
 
-# Retrieving Data with `raqdm`
+# Air Toxics related R Packages
 
 ## `raqdm` - Overview
 
 - Provides convenient access to US EPA's AQS Data Mart in R
 - Makes use of the API discussed at http://www3.epa.gov/airdata/toc.html
-- Additional details and sourcecode on GitHub (https://github.com/ebailey78/raqdm)
-- Still under development - comments and suggestions welcome (eb11307@gmail.com)
+- Additional details and sourcecode on github (https://github.com/ebailey78/raqdm)
+- Still under development - Comments and Suggestions Welcome (eb11307@gmail.com)
 
 ## `raqdm` - Features
 
@@ -664,14 +659,18 @@ ggplot(rtox_long, aes(x=sample, fill=parameter)) + geom_histogram() + facet_grid
 
 ## `raqdm` - Installation
 
-- `raqdm` isn't currently on CRAN
-- To install use the `install_github()` function:
+- To install `raqdm` you will need the `devtools` package available on CRAN:
 
-```{r, eval = FALSE}
-install_github("ebailey78/raqdm")
-library(raqdm)
+```{r eval = FALSE}
+install.packages("devtools")
 ```
 
+- With `devtools` installed, install raqdm with the `install_github` function:
+
+```{r, eval = FALSE}
+devtools::install_github("ebailey78/raqdm")
+library(raqdm)
+```
 
 ## `raqdm` - Setup
 
@@ -692,10 +691,9 @@ setAQDMdefaults(state = "18", bdate = "20140101", edate = "20141231")
 
 ## `raqdm` - Requesting Data
 
-- Synchronous data download is not currently enabled on the EPA API.
 - We've set defaults for Indiana (18), and bdate(20140101) and edate(20141231) in the previous slide
 
-- Now we can request benzene data with
+- Now we can request 2014 benzene data from Indiana with
 
 ```{r, eval = FALSE}
 benz_req <- getAQDMdata(param = "45201")     # Request benzene
@@ -716,6 +714,115 @@ met <- getAQDMrequest(met_req)
 wind_dir <- getAQDMrequest(wind_dir_req)
 ```
 
+# Exposure Estimates with `rucl`
+
+## `rucl` Overview
+
+- `rucl` is an R package that assists in calculating Upper Confidence Limits of the Mean (UCLs) in R
+- Based heavily on U.S. EPA's ProUCL software version 4.1. (http://www2.epa.gov/land-research/proucl-software)
+- Needs additional development and testing before official release
+- Not well documented yet
+
+## `rucl` Features
+
+- Test for normal, lognormal, or gamma distributions
+- Handles censored and uncensored datasets
+- Can calculate over 30 different UCLs
+- Will recommend UCLs based on data characteristics (experimental)
+
+## `rucl` Installation
+
+- To install `rucl` you will need the `devtools` package available on CRAN:
+
+```{r, echo = FALSE, warning = FALSE, message=FALSE}
+library(rucl2)
+```
+
+```{r eval = FALSE}
+install.packages("devtools")
+```
+
+- With `devtools` installed, install raqdm with the `install_github` function:
+
+```{r, eval = FALSE}
+devtools::install_github("ebailey78/rucl")
+library(rucl)
+```
+
+```{r, echo=FALSE}
+library(rucl2)
+```
+
+## `rucl` Usage
+
+
+- The primary function in `rucl` is `ucl()`
+- The only required argument is a numeric vector that represents concentrations
+
+```{r, warning = FALSE} 
+
+  # Create a random dataset with 50 values from a gamma distribution
+  x <- rgamma(50, 5, 2) 
+
+  # Return the recommended UCL
+  ucl(x)
+```
+
+## `rucl` Usage
+
+- You can also request specific UCL calculations
+```{r, warning = FALSE}
+  # Calculate the modified-t-based UCL for normal distributions
+  ucl(x, "n.modt") 
+```
+
+## `rucl` Usage
+
+- Arguments can also be used to change the confidence level and number of bootstrap iterations
+```{r, warning = FALSE}
+ucl(x, confidence = 0.95, N = 10000)
+  
+ucl(x, confidence = 0.9, N = 10000)
+```
+
+## `rucl` Usage
+
+- `type = detailed` will create a `rucl` object that contains a great deal of information about the dataset
+```{r, warning = FALSE, eval = FALSE}
+  ucl(x, type = "detailed")
+```
+
+## `rucl` Usage
+<img src = "images/detailed.png" style = "height: 500px; text-align: center;" />
+
+## `rucl` Censored Data
+
+- `rucl` can handle censored datasets using Kaplan-Meier
+- Requires a second vector with TRUE/FALSE indicating whether the corresponding reading is a detect (TRUE) or nondetect (FALSE)
+- For non-detects, assumes reported reading is detection limit
+```{r, warning = FALSE, eval = FALSE}
+
+  # Create a lognormal dataset with 50 readings censored at 0.4
+  x <- rlnorm(50) 
+  d <- x > 0.4   
+  x[!d] <- 0.4
+
+  ucl(x, d = d)
+
+```
+
+## `rucl` Censored Data
+```{r, warning = FALSE, echo = FALSE}
+
+  # Create a lognormal dataset with 50 readings censored at 0.4
+  x <- rlnorm(50) 
+  d <- x > 0.4   
+  x[!d] <- 0.4
+
+  ucl(x, d = d)
+
+```
+
 
 ## Training Outline
 
@@ -731,6 +838,132 @@ wind_dir <- getAQDMrequest(wind_dir_req)
     + <font color="#D9D9D9">openair</font>
 * Air toxics analysis demo
 * <font color="#D9D9D9">Interactive web app with shiny</font>
+
+## Getting the data
+- Use `raqdm` to retrieve 2014 core HAPs data for the Gary IITRI monitor in Lake County, Indiana
+```{r, warning=FALSE, eval=FALSE}
+
+haps_request <- getAQDMdata(state = "18", county = "089", 
+                            site = "0022", pc = "CORE_HAPS", 
+                            format = "DMCSV", dur = "7", 
+                            bdate = "20140101", edate = "20141231")
+
+haps <- getAQDMrequest(haps_request)
+
+```
+
+```{r, echo=FALSE}
+load("data/haps.rda")
+```
+
+## Summarizing data with dplyr
+
+- Group the data using `dplyr`'s `group_by` function to group the data by parameter
+```{r}
+  haps <- group_by(haps, AQS.Parameter.Desc)
+```
+
+- Then summarize the data in a table
+```{r}
+haps_summary <- summarize(haps, n = n(), max = max(Sample.Measurement), 
+                          median = median(Sample.Measurement), 
+                          mean = signif(mean(Sample.Measurement), 2), 
+                          st.dev = signif(sd(Sample.Measurement), 2),
+                          ucl = signif(max(ucl(Sample.Measurement)), 2)) # from rucl package
+
+# Remove pollutants with no detectable readings
+haps_summary <- haps_summary[haps_summary$max != 0, ]
+
+```
+
+## Summarizing data with dplyr
+
+```{r}
+head(haps_summary)
+```
+
+## A closer look at benzene
+- Use `raqdm` to retrieve 2013-2014 24-hour benzene data for all of Indiana
+```{r, warning=FALSE, eval=FALSE}
+
+benzene_request <- getAQDMdata(state = "18", param = "45201", 
+                            format = "DMCSV", dur = "7", 
+                            bdate = "20130101", edate = "20141231")
+
+benzene <- getAQDMrequest(benzene_request)
+
+```
+
+```{r, echo=FALSE}
+load("data/benzene.rda")
+library(ggplot2)
+```
+
+## Prepare the data
+
+```{r}
+
+  # Convert from ppbc to ppbv
+  benzene$Sample.Measurement <- benzene$Sample.Measurement / 6
+  # Convert from ppbv to ug/m3
+  benzene$Sample.Measurement <- benzene$Sample.Measurement * 78.11 / 24.45
+
+  # Combine the State.Code, County.Code, and Site.Num, and POC fields into a single Site.ID field
+  benzene$Site.ID <- sprintf("%02i-%03i-%04i-%i", 
+                             benzene$State.Code, 
+                             benzene$County.Code, 
+                             benzene$Site.Num,
+                             benzene$POC)
+  
+  benzene <- group_by(benzene, Site.ID)
+  
+```
+
+## Summarize the data
+
+```{r}
+  summarize(benzene,
+            n = n(), max = max(Sample.Measurement),
+            ucl = ucl(Sample.Measurement)[1],
+            risk = ucl * 7.8e-6)  
+```
+
+## Boxplots
+
+```{r, warning=FALSE, eval=FALSE}
+
+# Create a boxplot of grouped by the new Site.ID field
+ggplot(benzene, aes(Site.ID, Sample.Measurement)) + geom_boxplot()
+```
+
+## Boxplots
+```{r, warning=FALSE, echo=FALSE}
+
+  benzene$Site.ID <- sprintf("%02i-%03i-%04i", benzene$State.Code, benzene$County.Code, benzene$Site.Num)
+  ggplot(benzene, aes(Site.ID, Sample.Measurement)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+## Line Graphs
+- Lets look at benzene data at the Gary IITRI monitor over a longer time period
+```{r, eval = FALSE} 
+gi_benz_req <- getAQDMdata(state = "18", county = "089", site = "0022",
+                           param = "45201", format = "DMCSV", dur = "7", 
+                           bdate = "20120101", edate = "20141231")
+
+benz <- getAQDMrequest(gi_benz_req)
+
+ggplot(benz, aes(as.Date(Date.Local), Sample.Measurement)) + geom_line() + scale_x_date() + xlab("") + ylab("Concentration")
+
+```
+
+## Line Graphs
+```{r, echo = FALSE} 
+load("data/benz_line.rda")
+
+ggplot(benz, aes(as.Date(Date.Local), Sample.Measurement)) + geom_line() + scale_x_date() + xlab("") + ylab("Concentration")
+
+```
 
 ## Training Outline
 
