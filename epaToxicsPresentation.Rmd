@@ -4,9 +4,12 @@ author: "Kali Frost and Nathan Byers"
 date: "October 26, 2015"
 output:
   ioslides_presentation:
-    widescreen: true
-    fig_caption: true
+    fig_caption: yes
+    widescreen: yes
 runtime: shiny
+resource_files:
+- data/PAMS_IITRI.rda
+- data/IITRI.Rdata
 ---
 
 ## Who we are
@@ -659,7 +662,7 @@ ggplot(rtox_long, aes(x=sample, fill=parameter)) + geom_histogram() + facet_grid
 - Save your most common parameter options so you don't have to enter them repeatedly
 - Access to all options available in EPA's web interface
 - Import requested data directly into an R data.frame for further analysis
-- Synchronous data pulls will be enabled when available from EPA
+- Can do both synchronous and asynchronous data pulls from the AQS Data Mart
 
 ## `raqdm` - Installation
 
@@ -672,7 +675,8 @@ install.packages("devtools")
 - With `devtools` installed, install raqdm with the `install_github` function:
 
 ```{r, eval = FALSE}
-devtools::install_github("ebailey78/raqdm")
+library(devtools)
+install_github("ebailey78/raqdm")
 library(raqdm)
 ```
 
@@ -715,7 +719,6 @@ met_req <- getAQDMdata(pc = "MET")
 ```{r, eval=FALSE}
 benz <- getAQDMrequest(benz_req)
 met <- getAQDMrequest(met_req)
-wind_dir <- getAQDMrequest(wind_dir_req)
 ```
 
 # Exposure Estimates with `rucl`
@@ -749,7 +752,8 @@ install.packages("devtools")
 - With `devtools` installed, install raqdm with the `install_github` function:
 
 ```{r, eval = FALSE}
-devtools::install_github("ebailey78/rucl")
+library(devtools)
+install_github("ebailey78/rucl")
 library(rucl)
 ```
 
@@ -766,7 +770,8 @@ library(rucl2)
 ```{r, warning = FALSE} 
 
   # Create a random dataset with 50 values from a gamma distribution
-  x <- rgamma(50, 5, 2) 
+  x <- rnorm(50, 5, 2) 
+  head(x)
 
   # Return the recommended UCL
   ucl(x)
@@ -827,11 +832,11 @@ ucl(x, confidence = 0.9, N = 10000)
 
 ```
 
-## Data visualization with `openair`
+# Data visualization with `openair`
 
 ## The openair project
 
-![openair](images/plume.png)
+![](images/plume.png)
 
 - The `openair` package was created by Dr. David Carslaw at King's College London.  The goals of the `openair` project are to create tools in R that use the wealth of air pollution data that is publicly available andmake it easy to carry out  sophisticated analyses quickly and in a reproducible way. 
 
@@ -1031,18 +1036,15 @@ library(raqdm)
 ##Synchronous query
 
 - The Gary IITRI station is a Photochemical Assessment Monitoring Station (PAMs).  We will query this data from the Gary IITRI site using the following request:
-```{r, warning=FALSE, eval=FALSE}
+```{r, eval=FALSE}
 pams2 <- getAQDMdata(user = "me@email.com", pw = "abc123", state = "18", county = "089", site = "0022", pc = "PAMS", param="", format = "DMCSV", bdate = "20140601", edate = "20140602", frmonly = "n", synchronous = TRUE)
 ```
 
-```{r, warning=FALSE, eval=FALSE, echo=FALSE}
-pams2 <- getAQDMdata(user = "kdfrost14@gmail.com", pw = "carmelkit41", state = "18", county = "089", site = "0022", pc = "PAMS", param="", format = "DMCSV", bdate = "20140601", edate = "20140602", frmonly = "n", synchronous = TRUE)
-```
 
 ## Asynchronous query
 
 - This previous query was only for a couple of days.  If we want to query for the entire year for a whole class of parameters, then an asynchronous retrieval is the way to go.  
-```{r, warning=FALSE, eval=FALSE}
+```{r, eval=FALSE}
 pams <- getAQDMdata(user = "me@email.com", pw = "abc123", state = "18", county = "089", site = "0022", pc = "PAMS", param="", format = "DMCSV", bdate = "20140101", edate = "20141231", frmonly = "n", synchronous = FALSE)
 ```
 
@@ -1069,31 +1071,35 @@ pams_len <- length(readLines("PAMS_IITRI.txt"))  ##Gives us the number of rows i
 pams <- read.table("PAMS_IITRI.txt", header=T, sep=",", nrows=pams_len-2)  ##Reads in the file and ignores the last 2 lines.
 ```
 
-```{r,echo=FALSE}
-pams <- readRDS(file="data/PAMS_IITRI.rda")
-```
+
 
 ## Use `dplyr` to filter the data
 - This returns a huge dataset (513,072 rows) which includes all the VOCs, NOx and meteorological parameters for the Gary IITRI site for 2014.  
 
 - Now let's use `dplyr` to filter it down to just a few of the parameters that we will need for our analysis  in `openair` (i.e.benzene, toluene, wind speed, and wind direction).
-```{r}
+```{r, eval=FALSE}
 library(dplyr)
 IITRI <- filter(pams, Parameter.Code =='61104'| Parameter.Code=='61103'|Parameter.Code =='45202'|Parameter.Code =='45201', POC == 1)
 ```
+
 
 ## Select columns of interest
 
 - Then we will select only the columns of interest to us using the `select()` function from `dplyr`.  For this analysis, we only need Date, Parameter, and Sample Measurement.
 
-```{r}
+```{r, eval=FALSE}
 IITRI_sub <- select(IITRI, Date.GMT,  X24.Hour.GMT, AQS.Parameter.Desc, Sample.Measurement)
+```
+
+
+```{r, echo=FALSE}
+load("data/IITRI.Rdata")
 ```
 
 ##Format data
 This leaves us with:
 ```{r,echo=FALSE}
-head(IITRI_sub,n=2L)
+head(IITRI_sub)
 ```
 
 ## Long to Wide Format
@@ -1118,15 +1124,13 @@ write.csv(gary_oa, file = file.path(tempdir(), "Gary_openair.csv"), row.names=F)
 ```{r,eval=FALSE}
 library(openair)
 gary <- import(file = file.path(tempdir(), "Gary_openair.csv"),sep=",",date="Date.GMT", time="X24.Hour.GMT" , date.format="%Y-%m-%d", time.format="%H:%M", ws="Wind Speed - Resultant", wd="Wind Direction - Resultant")
+
+summaryPlot(selectByDate(gary, year=2014))
 ```
 
-```{r,echo=FALSE}
-library(openair)
-gary <- import("data/Gary_openair.csv",sep=",",date="Date.GMT", time="X24.Hour.GMT" , date.format="%Y-%m-%d", time.format="%H:%M", ws="Wind Speed - Resultant", wd="Wind Direction - Resultant")
-```
 
 ## Summary Plot
-```{r}
+```{r, echo=FALSE}
 summaryPlot(selectByDate(gary, year=2014))
 ```
 
@@ -1198,7 +1202,6 @@ trendLevel(selectByDate(gary, year=2014), pollutant = "Benzene", border = "white
 ```{r,echo=FALSE}
 trendLevel(mydata, pollutant = "no2", border = "white", statistic = "max", breaks = c(0, 50, 100, 500), labels = c("low", "medium", "high"), cols = c("forestgreen", "yellow", "red"))
 ```
-
 
 ## Training Outline
 
@@ -1345,6 +1348,7 @@ renderPlot({
       geom_boxplot() + facet_grid(Unit.of.Measure ~ ., scales = "free")
 })
 ```
+
 
 
 
