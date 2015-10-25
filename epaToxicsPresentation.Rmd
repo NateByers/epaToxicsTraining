@@ -29,17 +29,17 @@ runtime: shiny
 ![](images/renthusiast.jpg)
 
 ## What this is 
-
-<div class="columns-2">
+<figure style = "float: right;">
+  <img src="images/xkcd.png" style="position: absolute; top: 50px; right: 150px;" />
+  
+</figure>
 - R presentation using [ioslides](http://rmarkdown.rstudio.com/ioslides_presentation_format.html)
 
 - Source code is on [GitHub](https://github.com/NateByers/epaToxicsTraining) 
 
 - This is entirely reproducible
 
-![https://xkcd.com/242/](images/xkcd.png)
-</div>
-
+- Comic credit: https://xkcd.com/242/
 
 ## Training Outline
 
@@ -259,7 +259,8 @@ install_github("ramnathv/rCharts")
     + [Code School](http://tryr.codeschool.com/)
 - Intermidiate/advanced material
     + [Cookbook for R](http://www.cookbook-r.com/)
-    + 
+    + [Coursera](https://www.coursera.org/course/rprog)
+    + [Advanced R](http://adv-r.had.co.nz/)
 
 ## Training Outline
 
@@ -277,15 +278,18 @@ install_github("ramnathv/rCharts")
 * <font color="#D9D9D9">Interactive web app with shiny</font>
 
 
-## The Hadleyverse {.columns-2}
+## The Hadleyverse
+<figure style = "float: right;">
+  <img src="images/hadleyverse.png" style="position: absolute; top: 25px; right: 50px;" />
+  
+</figure>
 
-- The Hadleyverse is a collection of packages written by
-[Hadley Wickham](http://had.co.nz/)
+- The Hadleyverse is a collection <br>
+of packages written by [Hadley Wickham](http://had.co.nz/)
 - These packages make R much easier to use
-- We will introduce three useful packages for data manipulation (`dplyr`),
-reshaping data (`tidyr`), and data visualization (`ggplot2`)
+- We will introduce three useful packages for <br> data manipulation (`dplyr`),
+reshaping data <br> (`tidyr`), and data visualization (`ggplot2`)
 
-![http://adolfoalvarez.cl/the-hitchhikers-guide-to-the-hadleyverse/](images/hadleyverse.png)
 
 # Data manipulation with `dplyr`
 
@@ -980,6 +984,16 @@ ggplot(benz, aes(as.Date(Date.Local), Sample.Measurement)) + geom_line() + scale
 * <font color="#D9D9D9">Air toxics analysis demo</font>
 * Interactive web app with `shiny`
 
+## Shiny - Overview
+
+- `shiny` is a package developed by [RStudio](http://shiny.rstudio.com/)
+- Makes it easy to create web applications using the R language
+- Not necessary to know HTML, CSS, JavaScript
+- But you can customize your apps using those web languages
+- The simplest way to create an app is to make two "R Script" files
+    + `ui.R` is a file that will determine what the user interface will look like
+    + `server.R` is a file that will do the data manipulation and create the output for the app
+
 ## `ui.R`
 
 ```{r, eval=FALSE}
@@ -1015,6 +1029,12 @@ shinyServer(function(input, output) {
 })
 ```
 
+## Shiny - `runApp()`
+
+- Save the `ui.R` and `server.R` files in your working directory
+- Also save your data in your working directory
+- Use `runApp()` to bring up your application in a web browser
+
 ## Shiny app
 
 ```{r, echo=FALSE}
@@ -1032,4 +1052,69 @@ renderPlot({
     hist(x, breaks = bins, col = 'darkgray', border = 'white')
 })
 ```
+
+## `ui.R`
+
+```{r, eval=FALSE}
+library(shiny)
+
+load("haps.rda")
+pollutants <- unique(as.character(haps$AQS.Parameter.Desc))
+
+shinyUI(fluidPage(
+  titlePanel("Gary IITRI HAPS 2014"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("pollutants", "Choose pollutants:", choices = pollutants, 
+                  selected = "Benzene", multiple = TRUE)
+    ),
+    mainPanel(
+      plotOutput("ggplot")
+    )
+  )
+))
+```
+
+## `server.R`
+
+```{r, eval = FALSE}
+library(shiny)
+library(dplyr)
+library(ggplot2)
+
+load("haps.rda")
+
+shinyServer(function(input, output) {
+  
+  output$ggplot <- renderPlot({
+    
+    haps <- filter(haps, AQS.Parameter.Desc %in% input$pollutants)
+    
+    ggplot(haps, aes(x=AQS.Parameter.Desc, y=Sample.Measurement)) + 
+      geom_boxplot() + facet_grid(Unit.of.Measure ~ ., scales = "free")
+  })
+  
+})
+```
+
+## Shiny app
+
+```{r, echo=FALSE}
+pollutants <- unique(as.character(haps$AQS.Parameter.Desc))
+
+inputPanel(
+  selectInput("pollutants", "Choose pollutants:", choices = pollutants, 
+                  selected = "Benzene", multiple = TRUE)
+)
+
+renderPlot({
+   haps <- filter(haps, AQS.Parameter.Desc %in% input$pollutants)
+    
+    ggplot(haps, aes(x=AQS.Parameter.Desc, y=Sample.Measurement)) + 
+      geom_boxplot() + facet_grid(Unit.of.Measure ~ ., scales = "free")
+})
+```
+
+
+
 
