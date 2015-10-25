@@ -257,7 +257,7 @@ install_github("ramnathv/rCharts")
     + [UCLA](http://www.ats.ucla.edu/stat/r/)
     + [DataCamp](https://www.datacamp.com/courses/free-introduction-to-r)
     + [Code School](http://tryr.codeschool.com/)
-- Intermidiate/advanced material
+- Intermediate/advanced material
     + [Cookbook for R](http://www.cookbook-r.com/)
     + [Coursera](https://www.coursera.org/course/rprog)
     + [Advanced R](http://adv-r.had.co.nz/)
@@ -827,6 +827,51 @@ ucl(x, confidence = 0.9, N = 10000)
 
 ```
 
+## Data visualization with `openair`
+
+## The openair project
+
+![openair](images/plume.png)
+
+- The `openair` package was created by Dr. David Carslaw at King's College London.  The goals of the `openair` project are to create tools in R that use the wealth of air pollution data that is publicly available andmake it easy to carry out  sophisticated analyses quickly and in a reproducible way. 
+
+- This is done by quickly summarizing and visualizing of air pollution data through wind and pollution roses, trend analyses and other helpful tools.
+
+## Summary plot
+- The first thing we want to do is a quick summary plot. 
+- The summary plot shows time-series data and makes it easy to view missing data, as well.
+- The summary plot also displays basic summary stats such as mean, median and 95th percentile.
+- A histogram helps the user view the distributions of each of their parameters.
+- You can call this plot using the following code:
+
+```{r,warning=FALSE,message=FALSE,eval=FALSE}
+library(openair)
+summaryPlot(mydata)  
+```
+
+## Summary Plot
+```{r,warning=FALSE,message=FALSE,echo=FALSE}
+library(openair)
+summaryPlot(mydata)  
+```
+
+
+## Windrose
+- The windrose plot allows easy visualization of wind speed and wind direction data.  
+- Could be especially useful for a modeler or analyst who wants to look at many years of wind data for comparison.
+
+## Windrose
+
+```{r}
+windRose(mydata, type="year", paddle=F)
+```
+
+## Trend Plots
+```{r}
+smoothTrend(mydata, pollutant = "no2", deseason = TRUE, simulate =TRUE,
+ylab = "concentration (ppb)",
+main = "monthly mean deseasonalised no2 (bootstrap uncertainties)")
+```
 
 ## Training Outline
 
@@ -842,6 +887,8 @@ ucl(x, confidence = 0.9, N = 10000)
     + <font color="#D9D9D9">openair</font>
 * Air toxics analysis demo
 * <font color="#D9D9D9">Interactive web app with shiny</font>
+
+
 
 ## Getting the data
 - Use `raqdm` to retrieve 2014 core HAPs data for the Gary IITRI monitor in Lake County, Indiana
@@ -968,6 +1015,190 @@ load("data/benz_line.rda")
 ggplot(benz, aes(as.Date(Date.Local), Sample.Measurement)) + geom_line() + scale_x_date() + xlab("") + ylab("Concentration")
 
 ```
+
+# Plotting Gary Benzene data with `openair`
+
+
+## Retrieving AQS data
+
+- Before we can use `openair` we will review how to grab data with `raqdm` and reshape it with `tidyr`.  This will get the data into a format that `openair` requires.
+
+- We will use `raqdm` to retrieve VOC data from the Gary IITRI monitor.  
+```{r,warning=FALSE, message=FALSE}
+library(raqdm)
+```
+
+##Synchronous query
+
+- The Gary IITRI station is a Photochemical Assessment Monitoring Station (PAMs).  We will query this data from the Gary IITRI site using the following request:
+```{r, warning=FALSE, eval=FALSE}
+pams2 <- getAQDMdata(user = "me@email.com", pw = "abc123", state = "18", county = "089", site = "0022", pc = "PAMS", param="", format = "DMCSV", bdate = "20140601", edate = "20140602", frmonly = "n", synchronous = TRUE)
+```
+
+```{r, warning=FALSE, eval=FALSE, echo=FALSE}
+pams2 <- getAQDMdata(user = "kdfrost14@gmail.com", pw = "carmelkit41", state = "18", county = "089", site = "0022", pc = "PAMS", param="", format = "DMCSV", bdate = "20140601", edate = "20140602", frmonly = "n", synchronous = TRUE)
+```
+
+## Asynchronous query
+
+- This previous query was only for a couple of days.  If we want to query for the entire year for a whole class of parameters, then an asynchronous retrieval is the way to go.  
+```{r, warning=FALSE, eval=FALSE}
+pams <- getAQDMdata(user = "me@email.com", pw = "abc123", state = "18", county = "089", site = "0022", pc = "PAMS", param="", format = "DMCSV", bdate = "20140101", edate = "20141231", frmonly = "n", synchronous = FALSE)
+```
+
+
+```{r,eval=FALSE}
+pams <- getAQDMrequest(pams)
+```
+
+##Tidying the data for `openair`
+
+- As we said before we will need to use `tidyr` to reshape the data into a format that `openair` likes.   `openair` requires data in a 'wide' format with all of the variables in their own column like this:
+```{r,warning=FALSE,message=FALSE}
+library(openair)
+head(mydata, n=2)
+```
+
+##Importing large file
+
+- I already have a large file from which I did an asynchronous pull straight from the Data Mart website.  This is one year of PAMS data from the Gary IITRI monitor.
+
+- Since the data mart files come with an "End of File" marker, we will tell R to ignore the last two lines of data.
+```{r,eval=FALSE}
+pams_len <- length(readLines("PAMS_IITRI.txt"))  ##Gives us the number of rows in the data file without using memory to read in the whole file.
+pams <- read.table("PAMS_IITRI.txt", header=T, sep=",", nrows=pams_len-2)  ##Reads in the file and ignores the last 2 lines.
+```
+
+```{r,echo=FALSE}
+pams <- readRDS(file="data/PAMS_IITRI.rda")
+```
+
+## Use `dplyr` to filter the data
+- This returns a huge dataset (513,072 rows) which includes all the VOCs, NOx and meteorological parameters for the Gary IITRI site for 2014.  
+
+- Now let's use `dplyr` to filter it down to just a few of the parameters that we will need for our analysis  in `openair` (i.e.benzene, toluene, wind speed, and wind direction).
+```{r}
+library(dplyr)
+IITRI <- filter(pams, Parameter.Code =='61104'| Parameter.Code=='61103'|Parameter.Code =='45202'|Parameter.Code =='45201', POC == 1)
+```
+
+## Select columns of interest
+
+- Then we will select only the columns of interest to us using the `select()` function from `dplyr`.  For this analysis, we only need Date, Parameter, and Sample Measurement.
+
+```{r}
+IITRI_sub <- select(IITRI, Date.GMT,  X24.Hour.GMT, AQS.Parameter.Desc, Sample.Measurement)
+```
+
+##Format data
+This leaves us with:
+```{r,echo=FALSE}
+head(IITRI_sub,n=2L)
+```
+
+## Long to Wide Format
+
+- Now that we have selected our columns of interest, lets use `tidyr` to spread out our 'long' data and make it 'wide'
+
+
+```{r, warning=FALSE, message=FALSE}
+library(tidyr)
+gary_oa <- spread(IITRI_sub, key = AQS.Parameter.Desc, value = Sample.Measurement)
+head(gary_oa,n=1)
+```
+
+- Then we will write it to a csv file for easy import into `openair`
+```{r,eval=FALSE}
+write.csv(gary_oa, file = file.path(tempdir(), "Gary_openair.csv"), row.names=F)
+```
+
+## Importing into `openair`
+
+- Now our data is ready to use in `openair`
+```{r,eval=FALSE}
+library(openair)
+gary <- import(file = file.path(tempdir(), "Gary_openair.csv"),sep=",",date="Date.GMT", time="X24.Hour.GMT" , date.format="%Y-%m-%d", time.format="%H:%M", ws="Wind Speed - Resultant", wd="Wind Direction - Resultant")
+```
+
+```{r,echo=FALSE}
+library(openair)
+gary <- import("data/Gary_openair.csv",sep=",",date="Date.GMT", time="X24.Hour.GMT" , date.format="%Y-%m-%d", time.format="%H:%M", ws="Wind Speed - Resultant", wd="Wind Direction - Resultant")
+```
+
+## Summary Plot
+```{r}
+summaryPlot(selectByDate(gary, year=2014))
+```
+
+## Pollution Rose
+- A pollution rose plot is useful for describing the proportion of contaminant that comes from each wind direction.
+
+## Pollution Rose
+```{r}
+pollutionRose(gary,pollutant= "Benzene")
+```
+
+## Percentile Rose
+- A percentile rose plot can help you see the distribution of concentrations by wind direction and specify high concentrations.
+
+
+## Percentile Rose
+```{r}
+percentileRose(gary, pollutant="Benzene", percentile = c(0,1,50,75,95), smooth=TRUE)
+```
+
+## Percentile Rose
+```{r}
+percentileRose(gary, pollutant="Benzene", percentile = 95, method="cpf", smooth=TRUE, main="95th Percentile Concentrations of Benzene & Their Associated Wind Direction")
+```
+
+## Time-series plots
+
+```{r}
+timePlot(gary,pollutant=c("Benzene","Toluene","ws"))
+```
+
+## Calendar Plots
+
+```{r,eval=F}
+calendarPlot(gary, pollutant = "Benzene", year=2014, statistic="mean",  labels=c("acceptable","near cancer screening level","above cancer screening level"), breaks=c(0,0.4,1.4,200),main = "2014 Gary IITRI Benzene (ppbv)")
+```
+
+## Calendar Plots
+```{r,echo=F}
+calendarPlot(gary, pollutant = "Benzene", year=2014, statistic="mean",  labels=c("acceptable","near cancer screening level","above cancer screening level"), breaks=c(0,0.4,1.4,200),main = "2014 Gary IITRI Benzene (ppbv)")
+```
+
+
+## Calendar Plots
+- You can use the `annotate()` function within `calendarPlot` to plot the wind direction (`annotate="wd"`) or the concentrations (`annotate = "value"`) on the calendar
+
+```{r,eval=FALSE}
+calendarPlot(gary, pollutant = "Benzene", year=2014, annotate="wd", statistic="mean",  labels=c("acceptable","near cancer screening level","above cancer screening level"), breaks=c(0,0.4,1.4,200),main = "2014 Gary IITRI Benzene (ppbv) with Wind Direction")
+```
+
+## Calendar Plots
+```{r,echo=FALSE}
+calendarPlot(gary, pollutant = "Benzene", year=2014, annotate="wd", statistic="mean",  labels=c("acceptable","near cancer screening level","above cancer screening level"), breaks=c(0,0.4,1.4,200),main = "2014 Gary IITRI Benzene (ppbv) with Wind Direction")
+```
+
+##Scatterplot with wind direction as the 'z' value
+
+```{r}
+scatterPlot(selectByDate(gary, month = 8),x = "date", y = "Benzene", z = "wd")
+```
+
+##Trend Levels (Data Heatmaps)
+
+```{r,eval=FALSE}
+trendLevel(selectByDate(gary, year=2014), pollutant = "Benzene", border = "white", statistic = "max", breaks = c(0, 10, 20, 200), labels = c("acceptable", "near SL", "above SL"), cols = c("forestgreen", "yellow", "red"),main = "Trends in Benzene Concentrations")
+```
+
+## Trend Levels 
+```{r,echo=FALSE}
+trendLevel(mydata, pollutant = "no2", border = "white", statistic = "max", breaks = c(0, 50, 100, 500), labels = c("low", "medium", "high"), cols = c("forestgreen", "yellow", "red"))
+```
+
 
 ## Training Outline
 
