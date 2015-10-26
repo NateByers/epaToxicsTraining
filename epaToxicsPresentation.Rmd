@@ -1329,7 +1329,13 @@ renderPlot({
 })
 ```
 
+## Contact Information
 
+- Nathan Byers, natebyers@gmail.com
+
+- Kali Frost, kdfrost14@gmail.com
+
+- Eric Bailey, eb11307@gmail.com
 
 
 
